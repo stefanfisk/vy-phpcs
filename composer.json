@@ -1,0 +1,57 @@
+{
+    "name": "stefanfisk/vy-phpcs",
+    "description": "PHPCS sniffs for use with stefanfisk/vy",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "phpcs vy"
+    ],
+    "authors": [
+        {
+            "name": "Stefan Fisk",
+            "email": "contact@stefanfisk.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1"
+    },
+    "require-dev": {
+        "ramsey/devtools": "^2.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "StefanFisk\\Vy\\Phpcs\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "StefanFisk\\Test\\Vy\\Phpcs\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ramsey/composer-repl": true,
+            "phpstan/extension-installer": true,
+            "ergebnis/composer-normalize": true,
+            "captainhook/plugin-composer": true,
+            "ramsey/devtools": true
+        },
+        "sort-packages": true
+    },
+    "extra": {
+        "captainhook": {
+            "force-install": true
+        },
+        "ramsey/conventional-commits": {
+            "configFile": "conventional-commits.json"
+        },
+        "ramsey/devtools": {
+            "command-prefix": "dev",
+            "memory-limit": "-1"
+        }
+    }
+}

@@ -8,7 +8,7 @@
     <file>./src</file>
     <file>./tests</file>
 
-    <rule ref="./src"/>
+    <rule ref="Vy"/>
 
     <rule ref="Ramsey"/>
 

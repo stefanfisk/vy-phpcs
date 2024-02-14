@@ -111,11 +111,11 @@ use StefanFisk\Vy\Attributes\VyComponent;
 class Foo
 {
     #[\StefanFisk\Vy\Attributes\VyElement]
-    private static function el(
+    private function el(
         ?string $foo = null,
         mixed $children = null,
     ): \\StefanFisk\\Vy\\Element {
-        return \\StefanFisk\\Vy\\el(static::class, [
+        return \\StefanFisk\\Vy\\el($this->render(...), [
             \'foo\' => $foo,
             \'children\' => $children,
         ]);
@@ -123,6 +123,57 @@ class Foo
 
     #[VyComponent]
     private function render(
+        ?string $foo = null,
+        mixed $children = null,
+    ): mixed {
+        return $children;
+    }
+}
+',
+        );
+    }
+
+    public function testGeneratesElForPrivateVyComponentRenderFooWithoutFooEl(): void
+    {
+        $this->assertSniff(
+            sniff: ElMethodsSniff::class,
+            content: '<?php
+
+use StefanFisk\Vy\Attributes\VyComponent;
+
+class Foo
+{
+    #[VyComponent]
+    private function renderFoo(
+        ?string $foo = null,
+        mixed $children = null,
+    ): mixed {
+        return $children;
+    }
+}
+',
+            messages: [
+                [8, 'ERROR', 'Method "renderFoo" does not have matching "fooEl" method', 'RenderWithoutEl'],
+            ],
+            fixedContent: '<?php
+
+use StefanFisk\Vy\Attributes\VyComponent;
+
+class Foo
+{
+    #[\StefanFisk\Vy\Attributes\VyElement]
+    private function fooEl(
+        ?string $foo = null,
+        mixed $children = null,
+    ): \\StefanFisk\\Vy\\Element {
+        return \\StefanFisk\\Vy\\el($this->renderFoo(...), [
+            \'foo\' => $foo,
+            \'children\' => $children,
+        ]);
+    }
+
+    #[VyComponent]
+    private function renderFoo(
         ?string $foo = null,
         mixed $children = null,
     ): mixed {

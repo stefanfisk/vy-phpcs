@@ -9,7 +9,10 @@ use PHP_CodeSniffer\Sniffs\Sniff;
 use StefanFisk\Vy\Utils\FixerUtils;
 use StefanFisk\Vy\Utils\SniffUtils;
 
+use function ctype_upper;
 use function implode;
+use function lcfirst;
+use function str_starts_with;
 use function substr;
 
 use const T_CLASS;
@@ -44,20 +47,21 @@ class ElMethodsSniff implements Sniff
 
     private function processMethod(File $phpcsFile, int $methodPtr, int $classPtr): void
     {
-        $this->processRenderMethodToken($phpcsFile, $methodPtr, $classPtr);
-    }
-
-    private function processRenderMethodToken(File $phpcsFile, int $stackPtr, int $currScope): void
-    {
         // Bail if not render()
 
-        $name = $phpcsFile->getDeclarationName($stackPtr);
+        $renderName = $phpcsFile->getDeclarationName($methodPtr);
 
-        if ($name !== 'render') {
+        if ($renderName === null) {
             return;
         }
 
-        $renderPtr = $stackPtr;
+        $elName = $this->getElMethodName($renderName);
+
+        if ($elName === null) {
+            return;
+        }
+
+        $renderPtr = $methodPtr;
 
         // Bail if the method does not have the VyComponent attribute
 
@@ -67,14 +71,14 @@ class ElMethodsSniff implements Sniff
 
         // Find matching el()
 
-        $elPtr = SniffUtils::findMethod($phpcsFile, $currScope, 'el');
+        $elPtr = SniffUtils::findMethod($phpcsFile, $classPtr, $elName);
 
         // If no el() is found
 
         if ($elPtr === null) {
             // Add error
 
-            $this->addElNotFoundError($phpcsFile, $renderPtr);
+            $this->addElNotFoundError($phpcsFile, $renderPtr, $renderName, $elName);
 
             return;
         }
@@ -86,13 +90,13 @@ class ElMethodsSniff implements Sniff
 
         if ($renderParamsContent !== $elParamsContent) {
             // Add error
-            $this->addElParamsMismatchError($phpcsFile, $renderPtr, $elPtr);
+            $this->addElParamsMismatchError($phpcsFile, $renderPtr, $renderName, $elPtr, $elName);
 
             return;
         }
     }
 
-    private function addElNotFoundError(File $phpcsFile, int $renderPtr): void
+    private function addElNotFoundError(File $phpcsFile, int $renderPtr, string $renderName, string $elName): void
     {
         $paramsContent = SniffUtils::getParamsContent($phpcsFile, $renderPtr);
         $elPtr = SniffUtils::findInsertionPointBeforeMethod($phpcsFile, $renderPtr);
@@ -103,7 +107,7 @@ class ElMethodsSniff implements Sniff
         }
 
         $fix = $phpcsFile->addFixableError(
-            error: 'Method "render" does not have matching "el" method',
+            error: "Method \"$renderName\" does not have matching \"$elName\" method",
             stackPtr: $renderPtr,
             code: 'RenderWithoutEl',
         );
@@ -112,10 +116,9 @@ class ElMethodsSniff implements Sniff
             return;
         }
 
-        /** @var string $visibility */
-        $visibility = $phpcsFile->getMethodProperties($renderPtr)['scope'];
-
         $params = SniffUtils::getMethodParameters($phpcsFile, $renderPtr);
+
+        [$elScope, $elIsStatic, $component] = $this->getElAttributes($phpcsFile, $renderPtr, $renderName);
 
         $fixer = $phpcsFile->fixer;
 
@@ -123,18 +126,27 @@ class ElMethodsSniff implements Sniff
 
         $fixer->addContent($elPtr, '    #[\\' . self::VY_ELEMENT_ATTRIBUTE . ']');
         $fixer->addNewline($elPtr);
-        $fixer->addContent($elPtr, "    $visibility static function el");
+        $fixer->addContent($elPtr, "    $elScope");
+        if ($elIsStatic) {
+            $fixer->addContent($elPtr, ' static');
+        }
+        $fixer->addContent($elPtr, " function $elName");
         $fixer->addContent($elPtr, $paramsContent);
         $fixer->addContent($elPtr, ': \\StefanFisk\\Vy\\Element ');
-        $fixer->addContent($elPtr, $this->getElBodyContent($params, $phpcsFile->eolChar));
+        $fixer->addContent($elPtr, $this->getElBodyContent($params, $component, $phpcsFile->eolChar));
         $fixer->addNewline($elPtr);
         $fixer->addNewline($elPtr);
 
         $fixer->endChangeset();
     }
 
-    private function addElParamsMismatchError(File $phpcsFile, int $renderPtr, int $elPtr): void
-    {
+    private function addElParamsMismatchError(
+        File $phpcsFile,
+        int $renderPtr,
+        string $renderName,
+        int $elPtr,
+        string $elName,
+    ): void {
         $params = SniffUtils::getMethodParameters($phpcsFile, $renderPtr);
         $paramsOpenClosePtrs = SniffUtils::getParamsOpenClose($phpcsFile, $elPtr);
         $paramsContent = SniffUtils::getParamsContent($phpcsFile, $renderPtr);
@@ -163,19 +175,71 @@ class ElMethodsSniff implements Sniff
 
         // Replace el() function body
 
-        $elBodyContent = $this->getElBodyContent($params, $phpcsFile->eolChar);
+        [, , $component] = $this->getElAttributes($phpcsFile, $renderPtr, $renderName);
+
+        $elBodyContent = $this->getElBodyContent($params, $component, $phpcsFile->eolChar);
 
         FixerUtils::replaceTokens($fixer, $elBodyOpenClosePtrs[0], $elBodyOpenClosePtrs[1], $elBodyContent);
+    }
+
+    private static function getElMethodName(string $renderName): ?string
+    {
+        if ($renderName === 'render') {
+            return 'el';
+        }
+
+        if (!str_starts_with($renderName, 'render')) {
+            return null;
+        }
+
+        $renderSuffix = substr($renderName, 6);
+
+        if (!ctype_upper($renderSuffix[0])) {
+            return null;
+        }
+
+        $elPrefix = lcfirst($renderSuffix);
+
+        return "{$elPrefix}El";
+    }
+
+    /**
+     * @return array{string,bool,string}
+     */
+    private static function getElAttributes(File $phpcsFile, int $renderPtr, string $renderName): array
+    {
+        /** @var array{scope:string,is_static:bool} $renderProperties */
+        $renderProperties = $phpcsFile->getMethodProperties($renderPtr);
+
+        $renderScope = $renderProperties['scope'];
+        $renderIsPublic = $renderScope === 'public';
+
+        $renderIsStatic = $renderProperties['is_static'];
+
+        if ($renderIsStatic) {
+            $component = "static::$renderName(...)";
+            $elIsStatic = true;
+        } else {
+            if ($renderIsPublic) {
+                $component = 'static::class';
+                $elIsStatic = true;
+            } else {
+                $component = "\$this->$renderName(...)";
+                $elIsStatic = false;
+            }
+        }
+
+        return [$renderScope, $elIsStatic, $component];
     }
 
     /**
      * @param array<array{name:string,...}> $params
      */
-    public static function getElBodyContent(array $params, string $eolChar): string
+    private static function getElBodyContent(array $params, string $component, string $eolChar): string
     {
         $content = [];
         $content[] = '{';
-        $content[] = "        return \\StefanFisk\\Vy\\el(static::class, [";
+        $content[] = "        return \\StefanFisk\\Vy\\el($component, [";
         foreach ($params as $param) {
             $propName = substr($param['name'], 1);
 

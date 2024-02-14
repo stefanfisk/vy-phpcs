@@ -151,7 +151,7 @@ class SniffUtils
      *
      * Provides type hints.
      *
-     * @return array<array{name:string,content:string}>
+     * @return array<array{name:string,content:string,variable_length:bool}>
      *
      * @psalm-suppress MixedReturnTypeCoercion
      */

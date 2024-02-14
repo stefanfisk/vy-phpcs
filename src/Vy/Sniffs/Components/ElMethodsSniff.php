@@ -233,7 +233,7 @@ class ElMethodsSniff implements Sniff
     }
 
     /**
-     * @param array<array{name:string,...}> $params
+     * @param array<array{name:string,variable_length:bool,...}> $params
      */
     private static function getElBodyContent(array $params, string $component, string $eolChar): string
     {
@@ -243,7 +243,11 @@ class ElMethodsSniff implements Sniff
         foreach ($params as $param) {
             $propName = substr($param['name'], 1);
 
-            $content[] = "            '$propName' => $param[name],";
+            if ($param['variable_length']) {
+                $content[] = "            ...$param[name],";
+            } else {
+                $content[] = "            '$propName' => $param[name],";
+            }
         }
         $content[] = '        ]);';
         $content[] = '    }';

@@ -241,4 +241,59 @@ class Foo
 ',
         );
     }
+
+    public function testGeneratesSpreadElBodyForSpreadParam(): void
+    {
+        $this->assertSniff(
+            sniff: ElMethodsSniff::class,
+            content: '<?php
+
+use StefanFisk\Vy\Attributes\VyComponent;
+
+class Foo
+{
+    #[VyComponent]
+    public function render(
+        ?string $foo = null,
+        mixed $children = null,
+        mixed ...$props,
+    ): mixed {
+        return $children;
+    }
+}
+',
+            messages: [
+                [8, 'ERROR', 'Method "render" does not have matching "el" method', 'RenderWithoutEl'],
+            ],
+            fixedContent: '<?php
+
+use StefanFisk\Vy\Attributes\VyComponent;
+
+class Foo
+{
+    #[\StefanFisk\Vy\Attributes\VyElement]
+    public static function el(
+        ?string $foo = null,
+        mixed $children = null,
+        mixed ...$props,
+    ): \\StefanFisk\\Vy\\Element {
+        return \\StefanFisk\\Vy\\el(static::class, [
+            \'foo\' => $foo,
+            \'children\' => $children,
+            ...$props,
+        ]);
+    }
+
+    #[VyComponent]
+    public function render(
+        ?string $foo = null,
+        mixed $children = null,
+        mixed ...$props,
+    ): mixed {
+        return $children;
+    }
+}
+',
+        );
+    }
 }

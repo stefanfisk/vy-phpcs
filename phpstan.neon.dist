@@ -5,3 +5,8 @@ parameters:
     paths:
         - ./src
         - ./tests
+    bootstrapFiles:
+      - vendor/squizlabs/php_codesniffer/autoload.php
+      - vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
+    excludePaths:
+        - ./vendor

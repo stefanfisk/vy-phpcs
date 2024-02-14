@@ -48,7 +48,7 @@ If you need to provide more detailed examples, use the `docs/` directory
 and provide a link here to the documentation.
 
 ``` php
-use StefanFisk\Vy\Phpcs\Example;
+use StefanFisk\Vy\Example;
 
 $example = new Example();
 echo $example->greet('fellow human');

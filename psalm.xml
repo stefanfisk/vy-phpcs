@@ -6,7 +6,8 @@
        errorLevel="1"
        findUnusedBaselineEntry="true"
        findUnusedCode="false"
-       resolveFromConfigFile="true">
+       resolveFromConfigFile="true"
+       autoloader="vendor/squizlabs/php_codesniffer/autoload.php">
 
     <projectFiles>
         <directory name="./src"/>

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<ruleset name="Vy" namespace="StefanFisk\Vy">
+    <description>Vy sniffs.</description>
+</ruleset>

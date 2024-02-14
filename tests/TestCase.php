@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace StefanFisk\Test\Vy\Phpcs;
+namespace StefanFisk\Vy\Tests;
 
 use Ramsey\Dev\Tools\TestCase as BaseTestCase;
 

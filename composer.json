@@ -2,9 +2,10 @@
     "name": "stefanfisk/vy-phpcs",
     "description": "PHPCS sniffs for use with stefanfisk/vy",
     "license": "MIT",
-    "type": "library",
+    "type": "phpcodesniffer-standard",
     "keywords": [
-        "phpcs vy"
+        "phpcs",
+        "vy"
     ],
     "authors": [
         {
@@ -13,7 +14,8 @@
         }
     ],
     "require": {
-        "php": "^8.1"
+        "php": "^8.1",
+        "squizlabs/php_codesniffer": "^3.8"
     },
     "require-dev": {
         "ramsey/devtools": "^2.0"
@@ -22,22 +24,22 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "StefanFisk\\Vy\\Phpcs\\": "src/"
+            "StefanFisk\\Vy\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "StefanFisk\\Test\\Vy\\Phpcs\\": "tests/"
+            "StefanFisk\\Vy\\Tests\\": "tests/"
         }
     },
     "config": {
         "allow-plugins": {
-            "php-http/discovery": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true,
-            "ramsey/composer-repl": true,
-            "phpstan/extension-installer": true,
-            "ergebnis/composer-normalize": true,
             "captainhook/plugin-composer": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ergebnis/composer-normalize": true,
+            "php-http/discovery": true,
+            "phpstan/extension-installer": true,
+            "ramsey/composer-repl": true,
             "ramsey/devtools": true
         },
         "sort-packages": true

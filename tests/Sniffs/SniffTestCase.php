@@ -15,6 +15,8 @@ use StefanFisk\Vy\Tests\TestCase;
 use function assert;
 use function end;
 use function explode;
+use function is_array;
+use function is_string;
 
 abstract class SniffTestCase extends TestCase
 {
@@ -71,9 +73,16 @@ abstract class SniffTestCase extends TestCase
             ] as $level => $messages
         ) {
             foreach ($messages as $line => $columns) {
+                assert(is_array($columns));
+
                 foreach ($columns as $messages) {
+                    assert(is_array($messages));
+
                     foreach ($messages as $message) {
+                        assert(is_array($message));
+
                         $source = $message['source'];
+                        assert(is_string($source));
                         $sourceParts = explode('.', $source);
                         $code = end($sourceParts);
 

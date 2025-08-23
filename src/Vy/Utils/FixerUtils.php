@@ -6,7 +6,7 @@ namespace StefanFisk\Vy\Utils;
 
 use PHP_CodeSniffer\Fixer;
 
-class FixerUtils
+final class FixerUtils
 {
     public static function replaceTokens(Fixer $fixer, int $startPtr, int $endPtr, string $content): void
     {

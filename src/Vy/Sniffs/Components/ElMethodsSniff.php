@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace StefanFisk\Vy\Sniffs\Components;
 
+use Override;
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
 use StefanFisk\Vy\Utils\FixerUtils;
@@ -17,18 +18,26 @@ use function substr;
 
 use const T_CLASS;
 
-class ElMethodsSniff implements Sniff
+final class ElMethodsSniff implements Sniff
 {
     private const VY_ELEMENT_ATTRIBUTE = 'StefanFisk\Vy\Attributes\VyElement';
     private const VY_COMPONENT_ATTRIBUTE = 'StefanFisk\Vy\Attributes\VyComponent';
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritDoc}
+     */
+    #[Override]
     public function register()
     {
         return [T_CLASS];
     }
 
-    /** {@inheritdoc} */
+    /**
+     * @param int $stackPtr
+     *
+     * @return void
+     */
+    #[Override]
     public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = SniffUtils::getTokens($phpcsFile);

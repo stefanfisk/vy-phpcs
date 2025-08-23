@@ -31,7 +31,7 @@ use const T_TRAIT;
 use const T_USE;
 use const T_WHITESPACE;
 
-class SniffUtils
+final class SniffUtils
 {
     /**
      * Returns the token stack for this file.
@@ -44,7 +44,10 @@ class SniffUtils
      */
     public static function getTokens(File $phpcsFile): array
     {
-        /** @psalm-suppress LessSpecificReturnStatement */
+        /**
+         * @psalm-suppress LessSpecificReturnStatement
+         * @phpstan-ignore return.type
+         */
         return $phpcsFile->getTokens();
     }
 
@@ -157,6 +160,10 @@ class SniffUtils
      */
     public static function getMethodParameters(File $phpcsFile, int $methodPtr): array
     {
+        /**
+         * @psalm-suppress MixedReturnTypeCoercion
+         * @phpstan-ignore return.type
+         */
         return $phpcsFile->getMethodParameters($methodPtr);
     }
 
